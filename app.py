@@ -21,6 +21,9 @@ from src.charts import (
     grafico_calidad_barras,
     grafico_tendencia_historica,
     grafico_barras_proveedores_mini,
+    grafico_cumplimiento_gauge,
+    grafico_acumulado_combo,
+    grafico_top_proveedores_resumen,
 )
 from src.components.cards import card_kpi
 from src.components.filters import filtros_superiores, selector_pagina
@@ -185,6 +188,60 @@ def fmt_card(valor, unidad=""):
     except Exception:
         return str(valor)
 
+
+
+def fmt_ton(valor):
+    try:
+        return f"{float(valor):,.0f} Ton"
+    except Exception:
+        return str(valor)
+
+
+def fmt_pct(valor):
+    try:
+        return f"{float(valor):.1%}"
+    except Exception:
+        return "0.0%"
+
+
+def estado_cumplimiento(cumplimiento):
+    if cumplimiento >= 1:
+        return "🟢 Periodo en meta", "good", "El ingreso ejecutado está igual o por encima del presupuesto."
+    if cumplimiento >= .8:
+        return "🟠 Desvío moderado", "warn", "Hay una brecha frente a la meta, pero todavía es controlable."
+    return "🔴 Periodo crítico", "bad", "El cumplimiento está bajo y conviene revisar proveedores y días críticos."
+
+
+def construir_insights(kpi, res_tipo, prov_df):
+    insights = []
+    cumplimiento = kpi.get("cumplimiento", 0)
+    diferencia = kpi.get("diferencia", 0)
+    if cumplimiento >= 1:
+        insights.append(f"El periodo supera la meta en {fmt_ton(abs(diferencia))}.")
+    else:
+        insights.append(f"Faltan {fmt_ton(abs(diferencia))} para alcanzar el presupuesto del periodo.")
+
+    try:
+        tipos = res_tipo[res_tipo["tipo"].isin(["Grupo", "Terceros"])].copy()
+        if not tipos.empty and tipos["ejecutado"].sum() > 0:
+            top_tipo = tipos.sort_values("ejecutado", ascending=False).iloc[0]
+            part = top_tipo["ejecutado"] / tipos["ejecutado"].sum()
+            insights.append(f"La mayor participación viene de {top_tipo['tipo']} con {fmt_pct(part)} del total ejecutado.")
+    except Exception:
+        pass
+
+    try:
+        base = prov_df[prov_df["ejecutado"] > 0].copy()
+        if not base.empty:
+            lider = base.sort_values("ejecutado", ascending=False).iloc[0]
+            insights.append(f"Proveedor líder del periodo: {lider['proveedor']} con {fmt_ton(lider['ejecutado'])}.")
+            criticos = base[base["cumplimiento"] < .8]
+            if not criticos.empty:
+                insights.append(f"Hay {len(criticos)} proveedor(es) por debajo del 80% de cumplimiento.")
+    except Exception:
+        pass
+    return insights[:4]
+
 def kpi_card_html(titulo, valor, unidad, subtitulo, icono, tipo_clase=""):
     return f"""
     <div class="kpi-card {tipo_clase}">
@@ -214,26 +271,67 @@ html("""
 # PÁGINAS
 # =========================
 if pagina == "Vista general":
+    estado_txt, estado_clase, estado_desc = estado_cumplimiento(kpi["cumplimiento"])
+    insights = construir_insights(kpi, res_tipo, prov_df)
+    top_prov = prov_df[prov_df["ejecutado"] > 0].sort_values("ejecutado", ascending=False).head(5)
+    alertas_prov = prov_df[(prov_df["presupuesto"] > 0) & (prov_df["cumplimiento"] < .8)].sort_values("cumplimiento", ascending=True).head(5)
+
     html("""
     <div class="section-head">
-        <div><div class="section-code">01 / GENERAL</div><h2>Vista general del periodo</h2><p>Cuando seleccionas un solo mes, las gráficas cambian a diario; si seleccionas varios meses, cambian a mensual.</p></div>
+        <div><div class="section-code">01 / RESUMEN EJECUTIVO</div><h2>Vista ejecutiva del periodo</h2><p>Lectura rápida del comportamiento real frente al presupuesto, participación y alertas principales.</p></div>
     </div>
     """)
-    g1, g2 = st.columns(2)
+
+    html(f"""
+    <div class="executive-grid">
+        <div class="executive-card narrative">
+            <div class="exec-kicker">LECTURA DEL PERIODO</div>
+            <h3>{estado_txt}</h3>
+            <p>{estado_desc}</p>
+            <div class="exec-mini-row">
+                <span><b>{fmt_ton(kpi['ejecutado'])}</b><small>Ejecutado</small></span>
+                <span><b>{fmt_ton(kpi['presupuesto'])}</b><small>Presupuesto</small></span>
+                <span><b>{fmt_pct(kpi['cumplimiento'])}</b><small>Cumplimiento</small></span>
+            </div>
+        </div>
+        <div class="executive-card insights {estado_clase}">
+            <div class="exec-kicker">HALLAZGOS AUTOMÁTICOS</div>
+            <ul>
+                {''.join([f'<li>{x}</li>' for x in insights])}
+            </ul>
+        </div>
+    </div>
+    """)
+
+    g1, g2 = st.columns([1.6, 1], gap="large")
     with g1:
         html('<div class="chart-title"><i class="ph ph-chart-bar"></i> Real vs presupuestado</div>')
         st.plotly_chart(grafico_real_vs_presupuesto(serie), use_container_width=True)
     with g2:
-        html('<div class="chart-title"><i class="ph ph-trend-up"></i> Cumplimiento</div>')
-        st.plotly_chart(grafico_cumplimiento(serie), use_container_width=True)
+        html('<div class="chart-title"><i class="ph ph-gauge"></i> Cumplimiento ejecutivo</div>')
+        st.plotly_chart(grafico_cumplimiento_gauge(kpi["cumplimiento"], kpi["ejecutado"], kpi["presupuesto"]), use_container_width=True)
 
-    g3, g4 = st.columns([1, 1.45])
+    html('<div class="chart-title"><i class="ph ph-trend-up"></i> Cumplimiento por periodo</div>')
+    st.plotly_chart(grafico_cumplimiento(serie), use_container_width=True)
+
+    g3, g4 = st.columns([1, 1.45], gap="large")
     with g3:
         html('<div class="chart-title"><i class="ph ph-chart-donut"></i> Participación Grupo / Terceros</div>')
         st.plotly_chart(grafico_participacion_tipo(res_tipo), use_container_width=True)
     with g4:
         html('<div class="chart-title"><i class="ph ph-chart-line-up"></i> Acumulado real vs presupuesto</div>')
-        st.plotly_chart(grafico_acumulado(serie), use_container_width=True)
+        st.plotly_chart(grafico_acumulado_combo(serie), use_container_width=True)
+
+    h1, h2 = st.columns([1, 1], gap="large")
+    with h1:
+        html('<div class="chart-title"><i class="ph ph-trophy"></i> Top 5 proveedores del periodo</div>')
+        st.plotly_chart(grafico_top_proveedores_resumen(top_prov, top=5), use_container_width=True)
+    with h2:
+        html('<div class="chart-title"><i class="ph ph-warning-circle"></i> Alertas por bajo cumplimiento</div>')
+        if alertas_prov.empty:
+            html('<div class="empty-state"><b>Sin alertas críticas</b><span>No hay proveedores por debajo del 80% en el periodo seleccionado.</span></div>')
+        else:
+            st.plotly_chart(grafico_barras_proveedores_mini(alertas_prov, metrica="cumplimiento", top=5), use_container_width=True)
 
     html('<div class="chart-title"><i class="ph ph-table"></i> Resumen Grupo / Terceros / Total</div>')
     tabla_resumen_periodo(res_tipo)

@@ -93,38 +93,62 @@ def grafico_cumplimiento(data):
     data = data.copy()
     x = data["periodo_label"].astype(str)
     diario = _is_daily(data)
-    colores = [VERDE if v >= 1 else (NARANJA if v >= 0.75 else ROJO) for v in data["cumplimiento"]]
+    colores = [VERDE if v >= 1 else (NARANJA if v >= 0.80 else ROJO) for v in data["cumplimiento"]]
     textos = [f"{v:.0%}" if v > 0 and (not diario or i % 2 == 0) else "" for i, v in enumerate(data["cumplimiento"])]
+    ymax = max(1.15, float(data["cumplimiento"].max() or 1) * 1.16)
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=x,
         y=data["cumplimiento"],
         name="Cumplimiento",
-        marker_color=colores,
+        marker=dict(
+            color=colores,
+            line=dict(color="rgba(15,76,51,.18)", width=1),
+        ),
         text=textos,
         textposition="outside",
         cliponaxis=False,
-        hovertemplate="%{x}<br>Cumplimiento: %{y:.1%}<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>Cumplimiento: %{y:.1%}<extra></extra>",
     ))
-    fig.add_hline(
-        y=1,
-        line_dash="dash",
-        line_color="#8b9a92",
-        annotation_text="Meta 100%",
-        annotation_position="top right",
+    fig.add_hrect(
+        y0=0, y1=.80,
+        fillcolor="#fde8e4", opacity=.35,
+        line_width=0, layer="below",
+    )
+    fig.add_hrect(
+        y0=.80, y1=1,
+        fillcolor="#fff0dc", opacity=.35,
+        line_width=0, layer="below",
+    )
+    fig.add_hrect(
+        y0=1, y1=ymax,
+        fillcolor="#e7f4e3", opacity=.32,
+        line_width=0, layer="below",
+    )
+    fig.add_hline(y=1, line_dash="dash", line_color="#466b5a", line_width=2)
+    fig.add_annotation(
+        x=1, y=1.01, xref="paper", yref="y",
+        text="Meta 100%", showarrow=False,
+        xanchor="right", yanchor="bottom",
+        bgcolor="white", bordercolor="#cfe0ca", borderwidth=1, borderpad=4,
+        font=dict(size=11, color="#0f4c33"),
     )
     fig.update_layout(
         yaxis_tickformat=".0%",
         yaxis_title="Cumplimiento",
         xaxis_title="Día" if diario else "Mes",
-        bargap=0.18 if not diario else 0.10,
+        bargap=0.22 if not diario else 0.18,
+        showlegend=False,
+        uniformtext_minsize=9,
+        uniformtext_mode="hide",
     )
+    fig.update_yaxes(range=[0, ymax], tickformat=".0%")
     if diario:
         fig.update_xaxes(tickmode="linear", dtick=1, tickangle=0)
     else:
         fig.update_xaxes(tickangle=0)
-    return formato_figura(fig, height=410)
+    return formato_figura(fig, height=430)
 
 
 def grafico_participacion_tipo(df_tipo):
@@ -292,3 +316,88 @@ def grafico_barras_proveedores_mini(df, metrica="ejecutado", top=8, titulo=None)
         margin=dict(l=8, r=24, t=18, b=20),
     )
     return formato_figura(fig, height=310)
+
+
+
+def grafico_cumplimiento_gauge(cumplimiento, ejecutado=0, presupuesto=0):
+    """Indicador ejecutivo tipo gauge para el cumplimiento del periodo."""
+    valor = float(cumplimiento or 0)
+    valor_pct = max(0, min(valor * 100, 140))
+    color = VERDE if valor >= 1 else (NARANJA if valor >= .8 else ROJO)
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=valor_pct,
+        number={"suffix": "%", "font": {"size": 42, "color": VERDE_OSCURO}},
+        delta={"reference": 100, "suffix": "%", "relative": False, "font": {"size": 14}},
+        title={"text": "Cumplimiento del periodo", "font": {"size": 16, "color": "#17251d"}},
+        gauge={
+            "axis": {"range": [0, 140], "tickwidth": 1, "tickcolor": "#6f7d75"},
+            "bar": {"color": color, "thickness": .28},
+            "bgcolor": "white",
+            "borderwidth": 1,
+            "bordercolor": LINEA,
+            "steps": [
+                {"range": [0, 80], "color": "#fde8e4"},
+                {"range": [80, 100], "color": "#fff0dc"},
+                {"range": [100, 140], "color": "#dff0da"},
+            ],
+            "threshold": {"line": {"color": VERDE_OSCURO, "width": 4}, "thickness": .75, "value": 100},
+        },
+        domain={"x": [0, 1], "y": [0, 1]},
+    ))
+    fig.add_annotation(
+        x=.5,
+        y=-.05,
+        xref="paper",
+        yref="paper",
+        text=f"Ejecutado: {ejecutado:,.0f} Ton · Presupuesto: {presupuesto:,.0f} Ton",
+        showarrow=False,
+        font=dict(size=12, color=GRIS),
+    )
+    fig.update_layout(margin=dict(l=12, r=12, t=42, b=32))
+    return formato_figura(fig, height=360)
+
+
+def grafico_acumulado_combo(data):
+    """Acumulado con barras para ejecutado y línea para presupuesto para lectura ejecutiva."""
+    base = data.copy()
+    base["presupuesto_acum"] = base["presupuesto"].cumsum()
+    base["ejecutado_acum"] = base["ejecutado"].cumsum()
+    x = base["periodo_label"].astype(str)
+    diario = _is_daily(base)
+    textos = [f"{v:,.0f}" if v > 0 and (not diario or i % 2 == 0) else "" for i, v in enumerate(base["ejecutado_acum"])]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=x,
+        y=base["ejecutado_acum"],
+        name="Ejecutado acum.",
+        marker_color=VERDE_OSCURO,
+        text=textos,
+        textposition="outside",
+        cliponaxis=False,
+        hovertemplate="%{x}<br>Ejecutado acum.: %{y:,.0f} Ton<extra></extra>",
+    ))
+    fig.add_trace(go.Scatter(
+        x=x,
+        y=base["presupuesto_acum"],
+        name="Presupuesto acum.",
+        mode="lines+markers",
+        line=dict(color=NARANJA, width=4, shape="spline"),
+        marker=dict(size=9, color=NARANJA, line=dict(width=2, color="white")),
+        hovertemplate="%{x}<br>Presupuesto acum.: %{y:,.0f} Ton<extra></extra>",
+    ))
+    fig.update_layout(
+        yaxis_title="Toneladas acumuladas",
+        xaxis_title="Día" if diario else "Mes",
+        bargap=0.18 if not diario else 0.10,
+    )
+    fig.update_yaxes(tickformat=",.0f", separatethousands=True, exponentformat="none", showexponent="none")
+    if diario:
+        fig.update_xaxes(tickmode="linear", dtick=1, tickangle=0)
+    return formato_figura(fig, height=390)
+
+
+def grafico_top_proveedores_resumen(df, top=5):
+    """Top compacto para insertar en la vista ejecutiva."""
+    return grafico_barras_proveedores_mini(df.sort_values("ejecutado", ascending=False), metrica="ejecutado", top=top)
