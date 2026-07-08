@@ -2,12 +2,12 @@ import streamlit as st
 
 
 PAGE_OPTIONS = [
-    ("Vista general", "home", "Resumen ejecutivo"),
-    ("Ingreso por proveedor", "groups", "Proveedores"),
-    ("Real vs presupuesto", "bar_chart", "Real vs presupuesto"),
-    ("Participación Grupo/Terceros", "donut_large", "Participación Grupo/Terceros"),
-    ("Calidad del fruto", "check_box", "Calidad del fruto"),
-    ("Tendencia histórica", "trending_up", "Tendencia histórica"),
+    ("Vista general", "⌂", "Resumen ejecutivo"),
+    ("Ingreso por proveedor", "♣", "Proveedores"),
+    ("Real vs presupuesto", "▮", "Real vs presupuesto"),
+    ("Participación Grupo/Terceros", "◔", "Participación Grupo/Terceros"),
+    ("Calidad del fruto", "☑", "Calidad del fruto"),
+    ("Tendencia histórica", "↗", "Tendencia histórica"),
 ]
 
 
@@ -131,34 +131,29 @@ def filtros_superiores(ingreso, proveedores=None):
 
 
 def selector_pagina():
-    """Menú funcional sin abrir pestañas nuevas y sin limpiar filtros."""
+    """Menú funcional alineado a la izquierda y sin limpiar filtros."""
     if "pagina_dashboard" not in st.session_state:
         st.session_state["pagina_dashboard"] = "Vista general"
 
-    current = st.session_state["pagina_dashboard"]
+    current = st.session_state.get("pagina_dashboard", "Vista general")
+    paginas = [page for page, _, _ in PAGE_OPTIONS]
+    iconos = {page: icon for page, icon, _ in PAGE_OPTIONS}
+    labels = {page: label for page, _, label in PAGE_OPTIONS}
+
+    if current not in paginas:
+        current = paginas[0]
+        st.session_state["pagina_dashboard"] = current
+
     st.sidebar.markdown('<div class="menu-title">NAVEGACIÓN</div>', unsafe_allow_html=True)
 
-    for page, icon, label in PAGE_OPTIONS:
-        is_active = current == page
-        button_type = "primary" if is_active else "secondary"
-        try:
-            clicked = st.sidebar.button(
-                label,
-                key=f"nav_{page}",
-                icon=f":material/{icon}:",
-                use_container_width=True,
-                type=button_type,
-            )
-        except TypeError:
-            clicked = st.sidebar.button(
-                label,
-                key=f"nav_{page}",
-                use_container_width=True,
-                type=button_type,
-            )
-        if clicked:
-            st.session_state["pagina_dashboard"] = page
-            current = page
-            # No hacemos st.rerun(): el clic ya ejecuta la app y así Streamlit conserva los widgets.
+    seleccionado = st.sidebar.radio(
+        "Navegación",
+        paginas,
+        index=paginas.index(current),
+        format_func=lambda page: f"{iconos[page]}  {labels[page]}",
+        key="pagina_dashboard_radio",
+        label_visibility="collapsed",
+    )
 
-    return st.session_state["pagina_dashboard"]
+    st.session_state["pagina_dashboard"] = seleccionado
+    return seleccionado

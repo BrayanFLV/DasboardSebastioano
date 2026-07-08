@@ -1036,7 +1036,7 @@ def aplicar_estilos():
 
 
         /* ==================================================
-           RESPONSIVE FINAL - no cambia el diseño, lo adapta
+           RESPONSIVE FINAL 
         ================================================== */
         .kpi-responsive-grid {
             display: grid;
@@ -1224,6 +1224,329 @@ def aplicar_estilos():
         }
 
 
+
+        /* ===== V5 premium responsive + filtros en tablas ===== */
+        .hero-card {
+            padding: 24px 28px !important;
+            margin-bottom: 18px !important;
+        }
+        .hero-title { font-size: clamp(26px, 2.3vw, 32px) !important; }
+        .hero-desc { max-width: 760px; }
+        .table-filter-panel {
+            background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(247,252,245,.92));
+            border: 1px solid var(--line);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            padding: 14px 14px 4px;
+            box-shadow: var(--shadow-soft);
+        }
+        .table-filter-panel + .table-card {
+            border-radius: 0 0 20px 20px !important;
+        }
+        .table-filter-panel label {
+            color: var(--green) !important;
+            font-size: 11px !important;
+            font-weight: 950 !important;
+            letter-spacing: .07em !important;
+            text-transform: uppercase !important;
+        }
+        .table-filter-panel input {
+            border-radius: 14px !important;
+            color: var(--text) !important;
+            background: white !important;
+        }
+        .type-tag.grupo {
+            background: #e4f4dd !important;
+            border-color: #b7dcae !important;
+            color: #0f4c33 !important;
+        }
+        .type-tag.terceros {
+            background: #e8f2ff !important;
+            border-color: #bcd6f3 !important;
+            color: #245f9e !important;
+        }
+        .type-tag.total {
+            background: #fff0dc !important;
+            border-color: #f5d1a4 !important;
+            color: #98570e !important;
+        }
+        .pro-table tbody tr:nth-child(even) { background: #fbfdf9; }
+        .pro-table tbody tr:hover { background: #edf8e9 !important; }
+        .responsive-table-wrap::-webkit-scrollbar { height: 9px; }
+        .responsive-table-wrap::-webkit-scrollbar-thumb {
+            background: #c7ddbf;
+            border-radius: 999px;
+        }
+        .responsive-table-wrap::-webkit-scrollbar-track { background: #f3f8f0; }
+
+        @media (max-width: 1180px) {
+            .topbar-title h1 { font-size: 30px !important; }
+            .period-pill-real { width: 100%; justify-content: center; }
+            .hero-card { padding: 22px !important; }
+            .chart-title { border-radius: 18px 18px 0 0; }
+        }
+
+        @media (max-width: 920px) {
+            .table-filter-panel div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+                min-width: min(100%, 210px) !important;
+                flex: 1 1 210px !important;
+            }
+            .hero-title { font-size: 25px !important; }
+            .hero-card { border-radius: 20px !important; }
+            .section-head { margin-top: 22px !important; }
+            .section-head h2 { font-size: 21px !important; }
+            .section-head p { font-size: 13px !important; }
+            .kpi-responsive-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important; }
+        }
+
+        @media (max-width: 620px) {
+            .block-container { padding-left: .75rem !important; padding-right: .75rem !important; }
+            .hero-card { padding: 18px !important; }
+            .hero-desc { display: none; }
+            .legend-row { margin-top: 14px !important; }
+            .kpi-responsive-grid { grid-template-columns: 1fr !important; }
+            .kpi-card { min-height: 116px !important; }
+            .table-filter-panel { padding: 12px 12px 2px; }
+            .pro-table { min-width: 660px !important; }
+        }
+
+
+
+        /* ===== Corrección toolbar compacta filtros tablas ===== */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border: 1px solid var(--line) !important;
+            border-radius: 18px !important;
+            background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(247,252,245,.92)) !important;
+            box-shadow: 0 10px 26px rgba(15, 76, 51, .07) !important;
+            padding: 10px 12px 6px !important;
+            margin: 6px 0 12px !important;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlock"] {
+            gap: .35rem !important;
+        }
+        .table-toolbar-title {
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin: 0 0 2px 2px;
+        }
+        .table-filter-label {
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 950;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin: 0 0 4px 2px;
+            line-height: 1;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] .stTextInput,
+        div[data-testid="stVerticalBlockBorderWrapper"] .stSelectbox {
+            margin-bottom: 0 !important;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-baseweb="select"],
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-baseweb="select"] > div {
+            min-height: 40px !important;
+            border-radius: 13px !important;
+            box-shadow: none !important;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] input {
+            min-height: 40px !important;
+            border-radius: 13px !important;
+            box-shadow: none !important;
+        }
+        .table-card {
+            border-radius: 20px !important;
+            margin-top: 10px !important;
+        }
+        @media (max-width: 900px) {
+            div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+                gap: .5rem !important;
+            }
+            div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+                min-width: min(100%, 220px) !important;
+                flex: 1 1 220px !important;
+            }
+        }
+        @media (max-width: 560px) {
+            div[data-testid="stVerticalBlockBorderWrapper"] {
+                padding: 10px !important;
+            }
+            div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+                min-width: 100% !important;
+                flex: 1 1 100% !important;
+            }
+        }
+
+
+
+        /* ==================================================
+           FIX MENÚ LATERAL ALINEADO + GRÁFICOS DESCARGABLES
+        ================================================== */
+        [data-testid="stSidebar"] > div {
+            padding-left: 1.05rem !important;
+            padding-right: 1.05rem !important;
+        }
+        [data-testid="stSidebar"] .brand {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+        [data-testid="stSidebar"] .menu-title {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            text-align: left !important;
+        }
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] {
+            gap: .18rem !important;
+        }
+        [data-testid="stSidebar"] div[data-testid="stButton"] {
+            width: 100% !important;
+            margin: 0 !important;
+        }
+        [data-testid="stSidebar"] .stButton > button {
+            width: 100% !important;
+            justify-content: flex-start !important;
+            text-align: left !important;
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            gap: 12px !important;
+        }
+        [data-testid="stSidebar"] .stButton > button p {
+            width: 100% !important;
+            text-align: left !important;
+            margin: 0 !important;
+        }
+        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] {
+            width: 100% !important;
+            text-align: left !important;
+        }
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+            border-left-width: 0 !important;
+            box-shadow: inset 5px 0 0 var(--green-2), 0 12px 26px rgba(21,64,42,.08) !important;
+        }
+        .stDownloadButton > button {
+            min-height: 38px !important;
+            padding: 0 14px !important;
+            font-size: 12px !important;
+        }
+        div[data-testid="stPlotlyChart"] .modebar {
+            background: rgba(255,255,255,.84) !important;
+            border: 1px solid var(--line) !important;
+            border-radius: 12px !important;
+            padding: 2px 4px !important;
+            box-shadow: var(--shadow-soft) !important;
+        }
+
+
+        /* FIX DEFINITIVO: menú lateral alineado a la izquierda */
+        [data-testid="stSidebar"] div[data-testid="stButton"] {
+            width: 100% !important;
+        }
+        [data-testid="stSidebar"] div[data-testid="stButton"] > button {
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            text-align: left !important;
+            width: 100% !important;
+            min-height: 48px !important;
+            padding-left: 24px !important;
+            padding-right: 14px !important;
+            font-size: 15px !important;
+            letter-spacing: -0.01em !important;
+        }
+        [data-testid="stSidebar"] div[data-testid="stButton"] > button [data-testid="stMarkdownContainer"] {
+            width: auto !important;
+            flex: 0 1 auto !important;
+            margin: 0 !important;
+            text-align: left !important;
+        }
+        [data-testid="stSidebar"] div[data-testid="stButton"] > button p {
+            width: auto !important;
+            margin: 0 !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+        }
+        [data-testid="stSidebar"] .menu-item {
+            justify-content: flex-start !important;
+            padding-left: 24px !important;
+            text-align: left !important;
+        }
+        [data-testid="stSidebar"] .brand,
+        [data-testid="stSidebar"] .menu-title {
+            margin-left: 10px !important;
+        }
+        [data-testid="stSidebar"] .stDownloadButton > button {
+            font-size: 14px !important;
+        }
+
+
+        /* FIX REAL: navegación con radio, alineada uniforme a la izquierda */
+        [data-testid="stSidebar"] div[role="radiogroup"] {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label {
+            width: 100% !important;
+            min-height: 48px !important;
+            margin: 0 !important;
+            padding: 0 0 0 18px !important;
+            border-radius: 15px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
+            cursor: pointer !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+            background: rgba(255,255,255,.65) !important;
+            border-color: rgba(220,231,219,.8) !important;
+            transform: translateX(3px) !important;
+            box-shadow: var(--shadow-soft) !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) {
+            background: linear-gradient(90deg, #dff0da, #ffffff) !important;
+            box-shadow: inset 5px 0 0 var(--green-2), 0 12px 26px rgba(21,64,42,.08) !important;
+            border-color: transparent !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child {
+            display: none !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label [data-testid="stMarkdownContainer"] {
+            width: 100% !important;
+            margin: 0 !important;
+            text-align: left !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label p {
+            margin: 0 !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            font-size: 15px !important;
+            font-weight: 850 !important;
+            color: var(--text) !important;
+            line-height: 1 !important;
+        }
+        [data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked) p {
+            color: var(--green) !important;
+            font-weight: 900 !important;
+        }
+        [data-testid="stSidebar"] .menu-title {
+            margin-left: 8px !important;
+            margin-bottom: 12px !important;
+        }
+        [data-testid="stSidebar"] .menu-item {
+            margin-left: 0 !important;
+            padding-left: 18px !important;
+            justify-content: flex-start !important;
+        }
+
 </style>
 """.strip()
 
@@ -1232,3 +1555,4 @@ def aplicar_estilos():
         st.html(CSS)
     else:
         st.markdown(CSS, unsafe_allow_html=True)
+

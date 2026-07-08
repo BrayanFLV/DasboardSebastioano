@@ -39,6 +39,32 @@ st.set_page_config(
 aplicar_estilos()
 
 
+
+
+CONFIG_GRAFICO = {
+    "displaylogo": False,
+    "responsive": True,
+    "scrollZoom": True,
+    "toImageButtonOptions": {
+        "format": "png",
+        "filename": "grafico_rff_san_sebastiano",
+        "height": 720,
+        "width": 1200,
+        "scale": 2,
+    },
+    "modeBarButtonsToAdd": ["drawline", "drawrect", "eraseshape"],
+    "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+}
+
+
+def mostrar_grafico(fig, key: str, nombre: str = "grafico_rff"):
+    """Pinta gráficos interactivos con zoom, hover unificado y descarga PNG desde la barra nativa de Plotly."""
+    try:
+        fig.update_layout(hovermode="x unified")
+    except Exception:
+        pass
+    st.plotly_chart(fig, use_container_width=True, key=key, config=CONFIG_GRAFICO)
+
 def html(markup: str):
     limpio = "\n".join(line.strip() for line in dedent(markup).strip().splitlines() if line.strip())
     st.markdown(limpio, unsafe_allow_html=True)
@@ -306,32 +332,32 @@ if pagina == "Vista general":
     g1, g2 = st.columns([1.6, 1], gap="large")
     with g1:
         html('<div class="chart-title"><i class="ph ph-chart-bar"></i> Real vs presupuestado</div>')
-        st.plotly_chart(grafico_real_vs_presupuesto(serie), use_container_width=True)
+        mostrar_grafico(grafico_real_vs_presupuesto(serie), key=f"real_vs_presupuesto_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="real_vs_presupuesto_")
     with g2:
         html('<div class="chart-title"><i class="ph ph-gauge"></i> Cumplimiento ejecutivo</div>')
-        st.plotly_chart(grafico_cumplimiento_gauge(kpi["cumplimiento"], kpi["ejecutado"], kpi["presupuesto"]), use_container_width=True)
+        mostrar_grafico(grafico_cumplimiento_gauge(kpi["cumplimiento"], kpi["ejecutado"], kpi["presupuesto"]), key=f"gauge_cumplimiento_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="gauge_cumplimiento_")
 
     html('<div class="chart-title"><i class="ph ph-trend-up"></i> Cumplimiento por periodo</div>')
-    st.plotly_chart(grafico_cumplimiento(serie), use_container_width=True)
+    mostrar_grafico(grafico_cumplimiento(serie), key=f"cumplimiento_periodo_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="cumplimiento_periodo_")
 
     g3, g4 = st.columns([1, 1.45], gap="large")
     with g3:
         html('<div class="chart-title"><i class="ph ph-chart-donut"></i> Participación Grupo / Terceros</div>')
-        st.plotly_chart(grafico_participacion_tipo(res_tipo), use_container_width=True)
+        mostrar_grafico(grafico_participacion_tipo(res_tipo), key=f"participacion_tipo_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="participacion_tipo_")
     with g4:
         html('<div class="chart-title"><i class="ph ph-chart-line-up"></i> Acumulado real vs presupuesto</div>')
-        st.plotly_chart(grafico_acumulado_combo(serie), use_container_width=True)
+        mostrar_grafico(grafico_acumulado_combo(serie), key=f"acumulado_combo_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="acumulado_combo_")
 
     h1, h2 = st.columns([1, 1], gap="large")
     with h1:
         html('<div class="chart-title"><i class="ph ph-trophy"></i> Top 5 proveedores del periodo</div>')
-        st.plotly_chart(grafico_top_proveedores_resumen(top_prov, top=5), use_container_width=True)
+        mostrar_grafico(grafico_top_proveedores_resumen(top_prov, top=5), key=f"top_proveedores_resumen_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="top_proveedores_resumen_")
     with h2:
         html('<div class="chart-title"><i class="ph ph-warning-circle"></i> Alertas por bajo cumplimiento</div>')
         if alertas_prov.empty:
             html('<div class="empty-state"><b>Sin alertas críticas</b><span>No hay proveedores por debajo del 80% en el periodo seleccionado.</span></div>')
         else:
-            st.plotly_chart(grafico_barras_proveedores_mini(alertas_prov, metrica="cumplimiento", top=5), use_container_width=True)
+            mostrar_grafico(grafico_barras_proveedores_mini(alertas_prov, metrica="cumplimiento", top=5), key=f"alertas_cumplimiento_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="alertas_cumplimiento_")
 
     html('<div class="chart-title"><i class="ph ph-table"></i> Resumen Grupo / Terceros / Total</div>')
     tabla_resumen_periodo(res_tipo)
@@ -342,7 +368,7 @@ elif pagina == "Ingreso por proveedor":
     """)
 
     html('<div class="chart-title"><i class="ph ph-ranking"></i> Ranking general de proveedores</div>')
-    st.plotly_chart(grafico_ranking_proveedores(prov_df), use_container_width=True)
+    mostrar_grafico(grafico_ranking_proveedores(prov_df), key=f"ranking_proveedores_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="ranking_proveedores_")
 
     mayores = prov_df.sort_values("cumplimiento", ascending=False)
     menores = prov_df.sort_values("cumplimiento", ascending=True)
@@ -352,24 +378,24 @@ elif pagina == "Ingreso por proveedor":
     with t1:
         tabla_proveedores(mayores, top=5)
     with g1:
-        st.plotly_chart(grafico_barras_proveedores_mini(mayores, metrica="cumplimiento", top=5), use_container_width=True)
+        mostrar_grafico(grafico_barras_proveedores_mini(mayores, metrica="cumplimiento", top=5), key=f"mayores_cumplimiento_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="mayores_cumplimiento_")
 
     html('<div class="chart-title"><i class="ph ph-warning-circle"></i> Menores cumplimientos</div>')
     t2, g2 = st.columns([1.25, 1], gap="medium")
     with t2:
         tabla_proveedores(menores, top=5)
     with g2:
-        st.plotly_chart(grafico_barras_proveedores_mini(menores, metrica="cumplimiento", top=5), use_container_width=True)
+        mostrar_grafico(grafico_barras_proveedores_mini(menores, metrica="cumplimiento", top=5), key=f"menores_cumplimiento_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="menores_cumplimiento_")
 
     html('<div class="chart-title"><i class="ph ph-info"></i> Información general Grupo / Terceros</div>')
     t3, g3 = st.columns([1.05, 1.2], gap="medium")
     with t3:
         tabla_resumen_periodo(res_tipo)
     with g3:
-        st.plotly_chart(grafico_barras_proveedores_mini(prov_df.sort_values("ejecutado", ascending=False), metrica="ejecutado", top=8), use_container_width=True)
+        mostrar_grafico(grafico_barras_proveedores_mini(prov_df.sort_values("ejecutado", ascending=False), metrica="ejecutado", top=8), key=f"proveedores_ejecutado_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="proveedores_ejecutado_")
 
     html('<div class="chart-title"><i class="ph ph-table"></i> Detalle completo por proveedor</div>')
-    tabla_proveedores(prov_df)
+    tabla_proveedores(prov_df, filtros=True, key="detalle_proveedores")
 
 elif pagina == "Real vs presupuesto":
     html("""
@@ -378,12 +404,12 @@ elif pagina == "Real vs presupuesto":
     g1, g2 = st.columns(2)
     with g1:
         html('<div class="chart-title"><i class="ph ph-chart-bar"></i> Comparativo del periodo</div>')
-        st.plotly_chart(grafico_real_vs_presupuesto(serie), use_container_width=True)
+        mostrar_grafico(grafico_real_vs_presupuesto(serie), key=f"real_vs_presupuesto_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="real_vs_presupuesto_")
     with g2:
         html('<div class="chart-title"><i class="ph ph-chart-line-up"></i> Acumulado</div>')
-        st.plotly_chart(grafico_acumulado(serie), use_container_width=True)
+        mostrar_grafico(grafico_acumulado(serie), key=f"acumulado_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="acumulado_")
     html('<div class="chart-title"><i class="ph ph-table"></i> Cumplimiento por proveedor</div>')
-    tabla_proveedores(prov_df)
+    tabla_proveedores(prov_df, filtros=True, key="presupuesto_proveedores")
 
 elif pagina == "Participación Grupo/Terceros":
     html("""
@@ -392,7 +418,7 @@ elif pagina == "Participación Grupo/Terceros":
     g1, g2 = st.columns([1, 1.4])
     with g1:
         html('<div class="chart-title"><i class="ph ph-chart-donut"></i> Participación consolidada</div>')
-        st.plotly_chart(grafico_participacion_tipo(res_tipo), use_container_width=True)
+        mostrar_grafico(grafico_participacion_tipo(res_tipo), key=f"participacion_tipo_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="participacion_tipo_")
     with g2:
         html('<div class="chart-title"><i class="ph ph-table"></i> Resumen por tipo</div>')
         tabla_resumen_periodo(res_tipo)
@@ -409,9 +435,9 @@ elif pagina == "Calidad del fruto":
         q4.metric("Podrido", f"{cal_df['podrido'].mean():.1%}")
         q5.metric("Pedúnculo", f"{cal_df['pedunculo_largo'].mean():.1%}")
     html('<div class="chart-title"><i class="ph ph-leaf"></i> RFF maduro por proveedor</div>')
-    st.plotly_chart(grafico_calidad_barras(cal_df, "maduro", .89), use_container_width=True)
+    mostrar_grafico(grafico_calidad_barras(cal_df, "maduro", .89), key=f"calidad_maduro_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}", nombre="calidad_maduro_")
     html('<div class="chart-title"><i class="ph ph-table"></i> Calidad consolidada por proveedor</div>')
-    tabla_calidad(cal_df)
+    tabla_calidad(cal_df, filtros=True, key="calidad_proveedores")
     html('<div class="chart-title"><i class="ph ph-grid-four"></i> Matriz mensual de maduro</div>')
     tabla_matriz_calidad(matriz_calidad_mensual(ingreso, anio, meses_sel, "maduro", tipo))
 
@@ -423,5 +449,5 @@ elif pagina == "Tendencia histórica":
     anios_disp = sorted([int(x) for x in ingreso["anio"].dropna().unique().tolist()])
     tend = tendencia_historica(ingreso, presupuesto, anios_disp, meses_sel, tipo, proveedor, usar_presupuesto=usar_ppto)
     html('<div class="chart-title"><i class="ph ph-chart-line-up"></i> Comparativo mensual por año</div>')
-    st.plotly_chart(grafico_tendencia_historica(tend), use_container_width=True)
+    mostrar_grafico(grafico_tendencia_historica(tend), key=f"tendencia_historica_{pagina}_{anio}_{'-'.join(map(str, meses_sel))}_{tipo}_{proveedor}_{usar_ppto}", nombre="tendencia_historica_")
     tabla_tendencia_historica(tend)
